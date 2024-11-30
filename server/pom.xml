@@ -9,10 +9,16 @@
   <url>http://maven.apache.org</url>
 
   <dependencies>
+<!--    <dependency>-->
+<!--      <groupId>junit</groupId>-->
+<!--      <artifactId>junit</artifactId>-->
+<!--      <version>3.8.1</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -31,7 +37,18 @@
           </execution>
         </executions>
         <configuration>
-          <mainClass>server.src.main.java.server.Httpserver</mainClass>
+          <mainClass>server.Httpserver</mainClass>
+        </configuration>
+      </plugin>
+      <!-- Maven Surefire Plugin for test execution -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
         </configuration>
       </plugin>
     </plugins>
