@@ -1,4 +1,4 @@
-package server;
+package server.src.main.java.server;
 
 import com.sun.net.httpserver.*;
 import java.io.*;

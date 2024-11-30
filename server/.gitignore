@@ -1,4 +1,5 @@
-# Ignore all .class files
-*.class
-# Ignore all lib files
-lib
+# Ignore target directory
+target/
+
+# Ignore test directory
+# src/test
