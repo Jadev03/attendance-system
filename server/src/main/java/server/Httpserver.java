@@ -10,7 +10,8 @@ public class Httpserver{
         HttpServer server= HttpServer.create(new InetSocketAddress(port), 0);
         System.out.println("Server is running on http://localhost:8080 ..........");
         server.createContext("/login", new Loginhandler());
-        server.setExecutor(null); // Use the default executor
+        server.createContext("/logout", new Logouthandler());
+        server.setExecutor(null);
         server.start();      
     }
 

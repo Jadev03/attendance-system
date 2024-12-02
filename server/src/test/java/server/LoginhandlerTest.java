@@ -1,132 +1,142 @@
 package server;
 
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpExchange;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.Mockito.*;
+import server.token.Tokengeneration;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.*;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-class LoginhandlerTest {
-
+public class LoginhandlerTest {
     private Loginhandler loginHandler;
-    private HttpExchange exchange;
-    private ByteArrayOutputStream outputStream;
+    private Login loginValidatorMock;
+    private Tokengeneration tokenGeneratorMock;
+    private HttpExchange httpExchangeMock;
 
-//    void setUp() throws IOException {
-//        loginHandler = new Loginhandler();
-//        exchange = mock(HttpExchange.class);
-//        outputStream = new ByteArrayOutputStream();
-//
-//        // Mock the exchange behavior
-//        when(exchange.getResponseBody()).thenReturn(outputStream);
-//        doAnswer(invocation -> {
-//            int statusCode = (int) invocation.getArguments()[0];
-//            // Simulate writing status code as a response field for testing purposes
-//            outputStream.write(("{\"status\":" + statusCode + "}").getBytes());
-//            return null;
-//        }).when(exchange).sendResponseHeaders(anyInt(), anyLong());
-//    }
     @BeforeEach
-    void setUp() throws IOException {
-        loginHandler = new Loginhandler();
-        exchange = mock(HttpExchange.class);
-        outputStream = new ByteArrayOutputStream();
+    void setUp() {
+        // Mock dependencies
+        loginValidatorMock = mock(Login.class);
+        tokenGeneratorMock = mock(Tokengeneration.class);
 
-        // Mock the response body
-        when(exchange.getResponseBody()).thenReturn(outputStream);
+        // Instantiate the handler with mocked dependencies
+        loginHandler = new Loginhandler() {
+            @Override
+            protected Login getLoginValidator() {
+                return loginValidatorMock;
+            }
 
-        // Mock the sendResponseHeaders to simulate status setting (optional for real HTTP response)
-        doNothing().when(exchange).sendResponseHeaders(anyInt(), anyLong());
+            @Override
+            protected Tokengeneration getTokenGenerator() {
+                return tokenGeneratorMock;
+            }
+        };
+
+        httpExchangeMock = mock(HttpExchange.class);
     }
 
     @Test
-    void testHandleLogin_Success() {
-        // Mock the request method and body for a successful login
-        when(exchange.getRequestMethod()).thenReturn("POST");
-        when(exchange.getRequestBody()).thenReturn(new ByteArrayInputStream(
-                "{\"username\":\"user\", \"password\":\"Password&123\"}".getBytes()
-        ));
+    void testHandleValidCredentials() throws Exception {
+        // Arrange
+        String validUsername = "testuser";
+        String validPassword = "password";
+        String token = "mockedToken";
 
-        try {
-            loginHandler.handle(exchange);
-        } catch (IOException e) {
-            fail("IOException should not be thrown in this test");
-        }
+        // Simulate HTTP request body
+        JSONObject requestJson = new JSONObject();
+        requestJson.put("username", validUsername);
+        requestJson.put("password", validPassword);
+        ByteArrayInputStream requestStream = new ByteArrayInputStream(requestJson.toString().getBytes(StandardCharsets.UTF_8));
 
-        // Verify the response body
-        String response = outputStream.toString();
+        when(httpExchangeMock.getRequestMethod()).thenReturn("POST");
+        when(httpExchangeMock.getRequestBody()).thenReturn(requestStream);
+
+        // Mock validator and token generation
+        when(loginValidatorMock.validate(validUsername, validPassword)).thenReturn(true);
+        when(tokenGeneratorMock.generateJWT(validUsername)).thenReturn(token);
+
+        // Capture output stream
+        ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
+        when(httpExchangeMock.getResponseBody()).thenReturn(responseStream);
+
+        // Act
+        loginHandler.handle(httpExchangeMock);
+
+        // Assert
+        String response = new String(responseStream.toByteArray(), StandardCharsets.UTF_8);
         JSONObject responseJson = new JSONObject(response);
 
-        assertEquals("Login successful", responseJson.getString("message"), "Message should be 'Login successful'");
-        assertTrue(responseJson.has("token"), "Response should include a token for valid login");
-    }
+        assertEquals(200, responseJson.getInt("status"));
+        assertEquals("Login successful", responseJson.getString("message"));
+        assertEquals(token, responseJson.getString("token"));
 
-
-    @Test
-    void testHandleLogin_Failure_InvalidCredentials() {
-        // Mock the request method and body for invalid login credentials
-        when(exchange.getRequestMethod()).thenReturn("POST");
-        when(exchange.getRequestBody()).thenReturn(new ByteArrayInputStream(
-                "{\"username\":\"wrongUser\", \"password\":\"wrongPassword\"}".getBytes()
-        ));
-
-        try {
-            loginHandler.handle(exchange);
-        } catch (IOException e) {
-            fail("IOException should not be thrown in this test");
-        }
-
-        // Verify the response body
-        String response = outputStream.toString();
-        JSONObject responseJson = new JSONObject(response);
-
-        assertEquals("Invalid credentials", responseJson.getString("message"), "Message should be 'Invalid credentials'");
+        verify(httpExchangeMock).sendResponseHeaders(eq(200), anyInt());
     }
 
     @Test
-    void testHandleLogin_EmptyRequest() {
-        // Mock an empty request body
-        when(exchange.getRequestMethod()).thenReturn("POST");
-        when(exchange.getRequestBody()).thenReturn(new ByteArrayInputStream("".getBytes()));
+    void testHandleInvalidCredentials() throws Exception {
+        // Arrange
+        String invalidUsername = "invaliduser";
+        String invalidPassword = "wrongpassword";
 
-        try {
-            loginHandler.handle(exchange);
-        } catch (IOException e) {
-            fail("IOException should not be thrown in this test");
-        }
+        // Simulate HTTP request body
+        JSONObject requestJson = new JSONObject();
+        requestJson.put("username", invalidUsername);
+        requestJson.put("password", invalidPassword);
+        ByteArrayInputStream requestStream = new ByteArrayInputStream(requestJson.toString().getBytes(StandardCharsets.UTF_8));
 
-        // Verify the response body
-        String response = outputStream.toString();
+        when(httpExchangeMock.getRequestMethod()).thenReturn("POST");
+        when(httpExchangeMock.getRequestBody()).thenReturn(requestStream);
+
+        // Mock validator
+        when(loginValidatorMock.validate(invalidUsername, invalidPassword)).thenReturn(false);
+
+        // Capture output stream
+        ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
+        when(httpExchangeMock.getResponseBody()).thenReturn(responseStream);
+
+        // Act
+        loginHandler.handle(httpExchangeMock);
+
+        // Assert
+        String response = new String(responseStream.toByteArray(), StandardCharsets.UTF_8);
         JSONObject responseJson = new JSONObject(response);
 
-        assertEquals("Request body is empty", responseJson.getString("message"), "Message should be 'Request body is empty'");
+        assertEquals(401, responseJson.getInt("status"));
+        assertEquals("Invalid credentials", responseJson.getString("message"));
+
+        verify(httpExchangeMock).sendResponseHeaders(eq(401), anyInt());
     }
 
     @Test
-    void testHandleUnsupportedMethod() {
-        // Mock a method other than POST
-        when(exchange.getRequestMethod()).thenReturn("GET");
+    void testHandleEmptyRequestBody() throws Exception {
+        // Arrange
+        ByteArrayInputStream requestStream = new ByteArrayInputStream(new byte[0]);
+        when(httpExchangeMock.getRequestMethod()).thenReturn("POST");
+        when(httpExchangeMock.getRequestBody()).thenReturn(requestStream);
 
-        try {
-            loginHandler.handle(exchange);
-        } catch (IOException e) {
-            fail("IOException should not be thrown in this test");
-        }
+        // Capture output stream
+        ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
+        when(httpExchangeMock.getResponseBody()).thenReturn(responseStream);
 
-        // Verify the response body
-        String response = outputStream.toString();
+        // Act
+        loginHandler.handle(httpExchangeMock);
+
+        // Assert
+        String response = new String(responseStream.toByteArray(), StandardCharsets.UTF_8);
+
         JSONObject responseJson = new JSONObject(response);
 
-        assertEquals(405, responseJson.getInt("status"), "Status should be 405 for unsupported methods");
-        assertEquals("Method not allowed", responseJson.getString("message"), "Message should be 'Method not allowed'");
-    }
+        assertEquals(400, responseJson.getInt("status"));
+        assertEquals("Request body is empty", responseJson.getString("message"));
 
+        verify(httpExchangeMock).sendResponseHeaders(eq(400), anyInt());
+    }
 }
-
-

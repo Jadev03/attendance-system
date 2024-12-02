@@ -3,17 +3,18 @@ package server;
 import com.sun.net.httpserver.*;
 
 import java.io.*;
-
+import server.token.Tokengeneration;
 import java.nio.charset.StandardCharsets;
 import org.json.JSONObject;
-import java.util.Base64;
+
 
 public class Loginhandler implements HttpHandler {
-    private final Login loginValidator = new Login();
+
+    private final Tokengeneration tokenGenerator = new Tokengeneration();
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if ("POST".equals(exchange.getRequestMethod())) {
-            // Parse the request body
             InputStream inputStream = exchange.getRequestBody();
             String requestBody = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
@@ -35,7 +36,7 @@ public class Loginhandler implements HttpHandler {
             JSONObject responseJson = new JSONObject();
 
             // Validating
-            if (loginValidator.validate(username, password)) {
+            if (Login.validate(username, password)) {
                 String token = generateJWT(username);
                 responseJson.put("message", "Login successful");
                 responseJson.put("token", token);
@@ -64,10 +65,7 @@ public class Loginhandler implements HttpHandler {
 
 
     private String generateJWT(String username) {
-        // Mock JWT generation (use proper libraries like JJWT or JOSE in production)
-        String header = Base64.getEncoder().encodeToString("{\"alg\":\"HS256\",\"typ\":\"JWT\"}".getBytes());
-        String payload = Base64.getEncoder().encodeToString(("{\"username\":\"" + username + "\"}").getBytes());
-        String signature = Base64.getEncoder().encodeToString("secretKey".getBytes());
-        return header + "." + payload + "." + signature;
+        return tokenGenerator.generateJWT(username);
+
     }
 }

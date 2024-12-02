@@ -3,3 +3,12 @@ target/
 
 # Ignore test directory
 # src/test
+
+
+
+
+# Ignore registration .java
+src/main/java/server/Registration.java
+
+#Ignore .env file
+.env
