@@ -71,5 +71,6 @@ The Attendance-System is an imaginary school system designed to manage student a
 
 
   ![Screenshot (798).png](https://github.com/Jadev03/attendance-system/blob/e92e9c12483806047ec52953b9aa89e0567af547/Screenshot%20(798).png)
-  ![Screenshot (799).png](..%2F..%2FPictures%2FScreenshots%2FScreenshot%20%28799%29.png)
+  ![Screenshot (799).png](https://github.com/Jadev03/attendance-system/blob/ec3ecaf290079a604c2af57c2420e526dd52fdb7/Screenshot%20(799).png)
+  
   
