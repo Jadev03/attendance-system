@@ -68,34 +68,29 @@ public class Logouthandler implements HttpHandler {
                 tokenArray = (JSONArray) parser.parse(reader);
             }
 
-            boolean tokenRemoved = isTokenRemoved(token, tokenArray, path);
+            boolean tokenRemoved = false;
+            JSONArray updatedArray = new JSONArray();
+
+            for (Object obj : tokenArray) {
+                JSONObject tokenObj = (JSONObject) obj;
+                if (!token.equals(tokenObj.get("token"))) {
+                    updatedArray.add(tokenObj);
+                } else {
+                    tokenRemoved = true;
+                }
+            }
+
+            if (tokenRemoved) {
+                try (FileWriter writer = new FileWriter(path.toString())) {
+                    writer.write(updatedArray.toJSONString());
+                }
+            }
 
             return tokenRemoved;
         } catch (Exception e) {
             System.err.println("Error updating token list: " + e.getMessage());
         }
         return false;
-    }
-
-    private static boolean isTokenRemoved(String token, JSONArray tokenArray, Path path) throws IOException {
-        boolean tokenRemoved = false;
-        JSONArray updatedArray = new JSONArray();
-
-        for (Object obj : tokenArray) {
-            JSONObject tokenObj = (JSONObject) obj;
-            if (!token.equals(tokenObj.get("token"))) {
-                updatedArray.add(tokenObj);
-            } else {
-                tokenRemoved = true;
-            }
-        }
-
-        if (tokenRemoved) {
-            try (FileWriter writer = new FileWriter(path.toString())) {
-                writer.write(updatedArray.toJSONString());
-            }
-        }
-        return tokenRemoved;
     }
 
     private void sendResponse(HttpExchange exchange, int statusCode, String message) throws IOException {

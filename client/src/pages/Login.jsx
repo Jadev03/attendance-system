@@ -3,7 +3,7 @@ import { TextField, Button, Container, Box, Typography } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';  
+import axios from 'axios';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -16,39 +16,56 @@ const Login = () => {
 
   const handleLogin = async () => {
     setError('');
-  
+
+    // Username validation
+    const usernameRegex = /^[A-Za-z]+$/;
     if (!username) {
       usernameRef.current.focus();
+      setError('Username is required');
       return;
     }
+    if (!usernameRegex.test(username)) {
+      usernameRef.current.focus();
+      setError('Username must contain only alphabets');
+      return;
+    }
+
+    // Password validation
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9])(?=.*[a-z]).{8,}$/;
     if (!password) {
       passwordRef.current.focus();
+      setError('Password is required');
       return;
     }
-  
+    if (!passwordRegex.test(password)) {
+      passwordRef.current.focus();
+      setError(
+        'Password must be at least 8 characters long, include one uppercase letter, one special character, and one number'
+      );
+      return;
+    }
+
     try {
       const response = await axios.post('http://localhost:8080/login', {
         username,
         password,
-      }
-    );
-  
-      if (response.data.status === 'success') {
-        localStorage.setItem('token', response.data.token); // Store JWT
-        navigate('/main');
+      });
+
+      // Backend response handling
+      if (response.status === 200) {
+        const { message, token } = response.data; // Destructure backend response
+
+        localStorage.setItem('token', token); // Store JWT in localStorage
+        console.log(message); // Optionally log the success message
+        navigate('/main'); // Navigate to the main page
       } else {
-        setError('Email or Password is incorrect');
+        setError('Username or password is incorrect');
       }
     } catch (error) {
-      setError('Error logging in. Please try again.');
+      setError('Error logging in. Please try again later.');
+      console.error('Login error:', error);
     }
   };
-  
-  // React.useEffect(() => {
-  //   if (localStorage.getItem('isLoggedIn')) {
-  //     navigate('/main');
-  //   }
-  // }, [navigate]);
 
   return (
     <Container
@@ -74,8 +91,8 @@ const Login = () => {
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
-        <h2 className='text-3xl font-sansmat font-semibold'>ABC School</h2>
-        <h2 className='text-xl font-sansmat font-semibold'>Attendance </h2>
+        <h2 className="text-3xl font-sansmat font-semibold">ABC School</h2>
+        <h2 className="text-xl font-sansmat font-semibold">Attendance</h2>
         <Stack>
           <Avatar
             alt="logo"
@@ -86,8 +103,8 @@ const Login = () => {
 
         <TextField
           inputRef={usernameRef}
-          type='text'
-          label="username"
+          type="text"
+          label="Username"
           variant="outlined"
           fullWidth
           margin="normal"

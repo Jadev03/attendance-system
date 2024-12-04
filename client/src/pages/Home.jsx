@@ -32,14 +32,22 @@ const Head = () => {
   };
 
   return (
+    <div>
+
+
     <div className="flex justify-between items-center border border-white p-4">
-      <header className="text-3xl">ABC SCHOOL</header>
+    
+      <header className="text-3xl">ABC SCHOOL-Grade 10</header>
       <button
         className="bg-blue-500 h-10 w-20 text-white"
         onClick={handleLogout}
       >
         Logout
       </button>
+    </div>
+    <div>
+      WELCOME
+    </div>
     </div>
   );
 };
