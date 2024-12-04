@@ -19,12 +19,17 @@ const Head = () => {
         
       );
 
-      if (response.data.status === 'success') {
-        localStorage.removeItem('token'); 
-        navigate('/'); 
-      } else {
-        console.error('Failed to log out:', response.data.message);
-      }
+      if (response.status === 200) {
+              localStorage.removeItem('token');
+              alert('Logout successful');
+              navigate('/'); // Redirect to login page
+            } else if (response.status === 401) {
+              alert('Invalid or expired token');
+              localStorage.removeItem('token');
+              navigate('/'); // Redirect to login page
+            } else {
+              alert('Failed to log out. Please try again.');
+            }
     } catch (error) {
       console.error('Logout error:', error.message);
       alert('Failed to log out. Please try again.'); 

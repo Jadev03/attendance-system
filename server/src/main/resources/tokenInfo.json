@@ -1,10 +1,1 @@
-[
-  {
-    "username": "exampleUser",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlVXNlciIsImlhdCI6MTczMzEwMzEyMywiZXhwIjoxNzMzMTA0OTIzfQ.ZeP2KADMD50604YGqlXVyYlddfs7v84TVCIptx8sanc"
-  },
-  {
-    "username": "user",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNzMzMzEyNTkxLCJleHAiOjE3MzMzMTQzOTF9.xc_YgDxT7EGbq1dEpx7ycVqfEe55Jdo7uLHgMcJUd6Q"
-  }
-]
+[{"username":"exampleUser","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJleGFtcGxlVXNlciIsImlhdCI6MTczMzEwMzEyMywiZXhwIjoxNzMzMTA0OTIzfQ.ZeP2KADMD50604YGqlXVyYlddfs7v84TVCIptx8sanc"}]
