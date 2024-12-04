@@ -13,12 +13,13 @@ public class Httpserver {
         // Add context handlers
         server.createContext("/login", exchange -> handleWithCors(exchange, new Loginhandler()));
         server.createContext("/logout", exchange -> handleWithCors(exchange, new Logouthandler()));
+        server.createContext("/validate",exchange ->handleWithCors(exchange, new Tokenvalidatehandler()));
 
-        server.setExecutor(null); // Default executor
+        server.setExecutor(null);
         server.start();
     }
 
-    // Utility method to handle CORS
+
     private static void handleWithCors(HttpExchange exchange, HttpHandler handler) throws IOException {
         // Add CORS headers for the frontend at localhost:3000
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "http://localhost:3000");
@@ -26,7 +27,6 @@ public class Httpserver {
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
         if ("OPTIONS".equalsIgnoreCase(exchange.getRequestMethod())) {
-            // Handle preflight requests
             exchange.sendResponseHeaders(204, -1);
         } else {
             handler.handle(exchange);
